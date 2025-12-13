@@ -1,0 +1,7 @@
+Django
+djangorestframework
+Pillow
+opencv-python
+numpy
+
+pip freeze > requirements.txt
