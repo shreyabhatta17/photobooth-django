@@ -21,7 +21,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('booth.urls')),  # All API routes go through booth
+    path('', include('booth.urls')),  # Changed from 'api/' to ''
+    path('api/', include('booth.urls')),  # Keep API routes too
 ]
 
 if settings.DEBUG:

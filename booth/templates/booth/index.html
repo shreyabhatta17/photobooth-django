@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoBooth App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .upload-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #d0d7ff;
+            border-color: #5a67d8;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        select {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            font-size: 16px;
+            margin: 10px 5px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .results-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .image-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .image-card .download-btn {
+            width: 100%;
+            background: #48bb78;
+        }
+
+        .image-card .download-btn:hover {
+            background: #38a169;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fc8181;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .success {
+            background: #48bb78;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #preview {
+            max-width: 100%;
+            margin: 20px auto;
+            display: none;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 PhotoBooth App</h1>
+
+        <div class="upload-section">
+            <h2>Upload & Apply Filter</h2>
+            
+            <div class="upload-area" id="uploadArea">
+                <p>📤 Click to upload or drag & drop an image</p>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+
+            <img id="preview" alt="Preview">
+
+            <div style="text-align: center; margin-top: 20px;">
+                <select id="filterSelect">
+                    <option value="">Choose a filter...</option>
+                    <option value="grayscale">Grayscale</option>
+                    <option value="sepia">Sepia</option>
+                    <option value="blur">Blur</option>
+                    <option value="cartoon">Cartoon</option>
+                </select>
+                <button class="btn" id="uploadBtn" disabled>Upload & Apply Filter</button>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Processing your image...</p>
+            </div>
+
+            <div id="message"></div>
+        </div>
+
+        <div class="results-section" id="results"></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const preview = document.getElementById('preview');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const filterSelect = document.getElementById('filterSelect');
+        const loading = document.getElementById('loading');
+        const message = document.getElementById('message');
+        const results = document.getElementById('results');
+
+        let selectedFile = null;
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // File selection
+        fileInput.addEventListener('change', (e) => {
+            handleFileSelect(e.target.files[0]);
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        function handleFileSelect(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                showMessage('Please select a valid image file', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                uploadBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        // Upload and apply filter
+        uploadBtn.addEventListener('click', async () => {
+            const filter = filterSelect.value;
+            
+            if (!selectedFile) {
+                showMessage('Please select an image first', 'error');
+                return;
+            }
+
+            if (!filter) {
+                showMessage('Please select a filter', 'error');
+                return;
+            }
+
+            loading.style.display = 'block';
+            uploadBtn.disabled = true;
+            message.innerHTML = '';
+
+            try {
+                // Step 1: Upload the photo
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+
+                const uploadResponse = await fetch('/api/photos/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body: formData
+                });
+
+                if (!uploadResponse.ok) {
+                    const errorData = await uploadResponse.json();
+                    throw new Error(errorData.detail || 'Upload failed');
+                }
+
+                const uploadData = await uploadResponse.json();
+                const photoId = uploadData.id;
+
+                showMessage('Image uploaded! Applying filter...', 'success');
+
+                // Step 2: Apply the filter
+                const filterResponse = await fetch(`/api/photos/${photoId}/filter/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body: JSON.stringify({ filter: filter })
+                });
+
+                if (!filterResponse.ok) {
+                    const errorData = await filterResponse.json();
+                    throw new Error(errorData.error || 'Filter application failed');
+                }
+
+                const filterData = await filterResponse.json();
+
+                // Display results
+                displayResults(filterData);
+                showMessage('Filter applied successfully! 🎉', 'success');
+
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                console.error('Full error:', error);
+            } finally {
+                loading.style.display = 'none';
+                uploadBtn.disabled = false;
+            }
+        });
+
+        function displayResults(data) {
+            const resultHTML = `
+                <div class="image-card">
+                    <h3>Original Image</h3>
+                    <img src="${data.original_image}" alt="Original">
+                    <a href="${data.original_image}" download class="btn download-btn">Download Original</a>
+                </div>
+                <div class="image-card">
+                    <h3>Filtered Image</h3>
+                    <img src="${data.filtered_image}" alt="Filtered">
+                    <a href="${data.filtered_image}" download class="btn download-btn">Download Filtered</a>
+                </div>
+            `;
+            results.innerHTML = resultHTML + results.innerHTML;
+        }
+
+        function showMessage(text, type) {
+            message.innerHTML = `<div class="${type}">${text}</div>`;
+            setTimeout(() => {
+                message.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

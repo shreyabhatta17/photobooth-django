@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 from django.core.files.base import ContentFile
 import io
+from django.shortcuts import render
 
 from .models import Photo
 from .serializers import PhotoSerializer
@@ -15,6 +16,9 @@ from utils.filters import (
     apply_cartoon,
 )
 
+def index(request):
+    """Render the frontend page"""
+    return render(request, 'booth/index.html')
 
 # Upload photo via form
 def upload_photo(request):
